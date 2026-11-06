@@ -49,9 +49,12 @@ export const IS_STANDALONE = process.argv.includes("--standalone");
 export const IS_UPDATER_DISABLED = process.argv.includes("--disable-updater");
 export const gitHash = process.env.VENCORD_HASH || execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
 
+/** GitHub repo that Nessacord's updater checks, unless VENCORD_REMOTE or a non-upstream origin says otherwise. */
+export const NESSACORD_REPO = "SerenityDiscko/nessacord";
+
 export const banner = {
     js: `
-// Vencord ${gitHash}
+// Nessacord ${gitHash}
 // Standalone: ${IS_STANDALONE}
 // Platform: ${IS_STANDALONE === false ? process.platform : "Universal"}
 // Updater Disabled: ${IS_UPDATER_DISABLED}
@@ -242,11 +245,17 @@ export const gitRemotePlugin = {
         build.onLoad({ filter, namespace: "git-remote" }, async () => {
             let remote = process.env.VENCORD_REMOTE;
             if (!remote) {
-                const res = await promisify(exec)("git remote get-url origin", { encoding: "utf-8" });
-                remote = res.stdout.trim()
-                    .replace("https://github.com/", "")
-                    .replace("git@github.com:", "")
-                    .replace(/.git$/, "");
+                try {
+                    const res = await promisify(exec)("git remote get-url origin", { encoding: "utf-8" });
+                    remote = res.stdout.trim()
+                        .replace("https://github.com/", "")
+                        .replace("git@github.com:", "")
+                        .replace(/.git$/, "");
+                } catch { }
+
+                // Nessacord: the updater checks this repo's releases. Never fall back to upstream Vencord,
+                // whose releases would replace Nessacord with stock Vencord.
+                if (!remote || /^Vendicated\/Vencord$/i.test(remote)) remote = NESSACORD_REPO;
             }
 
             return { contents: `export default "${remote}"` };
