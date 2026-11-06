@@ -71,13 +71,13 @@ function Switches() {
             },
             reactKey: "NoTrack::disableAnalytics",
             key: null!,
-            title: "Block Discord Analytics",
+            title: "Block Godcord Analytics",
             description: NoTrack.settings.def.disableAnalytics.description,
             restartRequired: NoTrack.settings.def.disableAnalytics.restartNeeded,
         },
         IS_DISCORD_DESKTOP && {
             key: "nativeTitleBar",
-            title: "Enable the system's title bar in addition to Discord's custom one",
+            title: "Enable the system's title bar in addition to Godcord's custom one",
             restartRequired: true
         },
         !IS_WEB && {
@@ -89,12 +89,12 @@ function Switches() {
         IS_DISCORD_DESKTOP && {
             key: "disableMinSize",
             title: "Disable minimum window size",
-            description: "Allows you to resize the window to any size, even smaller than Discord's minimum size",
+            description: "Allows you to resize the window to any size, even smaller than Godcord's minimum size",
             restartRequired: true
         },
         !IS_WEB && IS_WINDOWS && {
             key: "winCtrlQ",
-            title: "Register Ctrl+Q as shortcut to close Discord (Alternative to Alt+F4)",
+            title: "Register Ctrl+Q as shortcut to close Godcord (Alternative to Alt+F4)",
             restartRequired: true
         },
         !IS_WEB && {
@@ -206,7 +206,7 @@ function VencordSettings() {
                         <>
                             <QuickAction
                                 Icon={RestartIcon}
-                                text="Relaunch Discord"
+                                text="Relaunch Godcord"
                                 action={relaunch}
                             />
                             <QuickAction
@@ -249,4 +249,4 @@ function VencordSettings() {
     );
 }
 
-export default wrapTab(VencordSettings, "Vencord Settings");
+export default wrapTab(VencordSettings, "Godcord Settings");

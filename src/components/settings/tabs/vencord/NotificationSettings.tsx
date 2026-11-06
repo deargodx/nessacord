@@ -20,8 +20,8 @@ export function NotificationSection() {
         <section className={Margins.top16}>
             <Heading className={Margins.bottom8}>Notifications</Heading>
             <Paragraph className={Margins.bottom8}>
-                Settings for Notifications sent by Vencord.
-                This does NOT include Discord notifications (messages, etc)
+                Settings for Notifications sent by Godcord.
+                This does NOT include regular notifications (messages, etc)
             </Paragraph>
             <Flex>
                 <Button onClick={openNotificationSettingsModal}>
@@ -62,16 +62,16 @@ function NotificationSettings() {
             <Paragraph className={Margins.bottom8}>
                 Some plugins may show you notifications. These come in two styles:
                 <ul>
-                    <li><strong>Vencord Notifications</strong>: These are in-app notifications</li>
+                    <li><strong>Godcord Notifications</strong>: These are in-app notifications</li>
                     <li><strong>Desktop Notifications</strong>: Native Desktop notifications (like when you get a ping)</li>
                 </ul>
             </Paragraph>
             <Select
                 placeholder="Notification Style"
                 options={[
-                    { label: "Only use Desktop notifications when Discord is not focused", value: "not-focused", default: true },
+                    { label: "Only use Desktop notifications when Godcord is not focused", value: "not-focused", default: true },
                     { label: "Always use Desktop notifications", value: "always" },
-                    { label: "Always use Vencord notifications", value: "never" },
+                    { label: "Always use Godcord notifications", value: "never" },
                 ] satisfies Array<{ value: typeof settings["useNative"]; } & Record<string, any>>}
                 closeOnSelect={true}
                 select={v => settings.useNative = v}

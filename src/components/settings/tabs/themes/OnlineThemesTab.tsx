@@ -39,7 +39,7 @@ export function OnlineThemesTab() {
             <Card>
                 <Heading className={Margins.bottom8}>Paste links to css files here</Heading>
                 <Paragraph>One link per line</Paragraph>
-                <Paragraph>You can prefix lines with @light or @dark to toggle them based on your Discord theme</Paragraph>
+                <Paragraph>You can prefix lines with @light or @dark to toggle them based on your Godcord theme</Paragraph>
                 <Paragraph>Make sure to use direct links to files (raw or github.io)!</Paragraph>
             </Card>
 
