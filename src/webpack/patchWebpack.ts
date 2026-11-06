@@ -12,6 +12,7 @@ import { interpolateIfDefined } from "@utils/misc";
 import { Patch, PatchReplacement } from "@utils/types";
 import { WebpackRequire } from "@vencord/discord-types/webpack";
 
+import { createPatchMatcher, PatchMatcher } from "./patchMatcher";
 import { AnyModuleFactory, AnyWebpackRequire, MaybePatchedModuleFactory, PatchedModuleFactory } from "./types";
 import { _blacklistBadModules, _initWebpack, factoryListeners, findModuleFactory, moduleListeners, waitForSubscriptions, wreq } from "./webpack";
 
@@ -444,6 +445,25 @@ function runFactoryWithWrap(patchedFactory: PatchedModuleFactory, moduleId: Prop
         return factoryReturn;
     }
 
+    runListeners(exports, moduleId);
+
+    return factoryReturn;
+}
+
+function readExportValues(exports: object) {
+    const values: unknown[] = [];
+    for (const exportKey in exports) {
+        // Some exports might have not been initialized yet due to circular imports, so try catch it.
+        try {
+            values.push(exports[exportKey]);
+        } catch { }
+    }
+    return values;
+}
+
+function runListeners(exports: any, moduleId: PropertyKey) {
+    let exportValues: unknown[] | undefined;
+
     for (const callback of moduleListeners) {
         try {
             callback(exports, moduleId);
@@ -472,15 +492,12 @@ function runFactoryWithWrap(patchedFactory: PatchedModuleFactory, moduleId: Prop
             continue;
         }
 
-        for (const exportKey in exports) {
-            try {
-                // Some exports might have not been initialized yet due to circular imports, so try catch it.
-                try {
-                    var exportValue = exports[exportKey];
-                } catch {
-                    continue;
-                }
+        // Godcord: read the exports once per module rather than once per pending subscription.
+        // Webpack exports are getters, and up to ~100 subscriptions are pending during startup.
+        exportValues ??= readExportValues(exports);
 
+        for (const exportValue of exportValues) {
+            try {
                 if (exportValue != null && filter(exportValue)) {
                     waitForSubscriptions.delete(filter);
                     callback(exportValue, moduleId);
@@ -496,8 +513,40 @@ function runFactoryWithWrap(patchedFactory: PatchedModuleFactory, moduleId: Prop
             }
         }
     }
+}
 
-    return factoryReturn;
+// Godcord: one shared matcher answers "does this module contain find X" for all string finds in a single pass.
+let patchMatcher: PatchMatcher | undefined;
+let patchMatcherPatchCount = -1;
+/** Patches the matcher cannot answer for (regex finds, short or non-ASCII strings): always tested directly. */
+let patchesOutsideMatcher: Patch[] = [];
+
+function getPatchMatcher() {
+    // Patches are only ever removed after startup; if any were added, rebuild so they get matched too.
+    if (patchMatcher == null || patches.length > patchMatcherPatchCount) {
+        const matcher = createPatchMatcher(patches.flatMap(p => typeof p.find === "string" ? [p.find] : []));
+        patchesOutsideMatcher = patches.filter(p => typeof p.find !== "string" || !matcher.handles(p.find));
+        patchMatcher = matcher;
+    }
+    patchMatcherPatchCount = patches.length;
+    return patchMatcher;
+}
+
+function patchFindMatches(patch: Patch, code: string, matcher: PatchMatcher) {
+    if (typeof patch.find === "string") {
+        return matcher.handles(patch.find) ? matcher.has(patch.find) : code.includes(patch.find);
+    }
+
+    return (patch.find.global && (patch.find.lastIndex = 0), patch.find.test(code));
+}
+
+function isOutsideBuildRange(range: { fromBuild?: number; toBuild?: number; }, buildNumber: number) {
+    return buildNumber !== -1 &&
+        ((range.fromBuild != null && buildNumber < range.fromBuild) || (range.toBuild != null && buildNumber > range.toBuild));
+}
+
+function makePatchedSource(moduleId: PropertyKey, pluginsList: Iterable<string>, code: string) {
+    return `// Webpack Module ${String(moduleId)} - Patched by ${[...pluginsList].join(", ")}\n${code}\n//# sourceURL=file:///WebpackModule${String(moduleId)}`;
 }
 
 /**
@@ -509,6 +558,157 @@ function runFactoryWithWrap(patchedFactory: PatchedModuleFactory, moduleId: Prop
  */
 function patchFactory(moduleId: PropertyKey, originalFactory: AnyModuleFactory): PatchedModuleFactory {
     const originalFactoryCode = String(originalFactory);
+    const matcher = getPatchMatcher();
+    const anyStringFindFound = matcher.scan(originalFactoryCode);
+
+    // Nearly every module matches no patch at all. If no find occurs in it, skip walking the whole
+    // patch list. (The matcher may still know finds of patches already applied and removed; that
+    // only sends a module down the full path below, which is always correct.)
+    if (!anyStringFindFound && !patchesOutsideMatcher.some(p => patchFindMatches(p, originalFactoryCode, matcher))) {
+        originalFactory[SYM_ORIGINAL_FACTORY] = originalFactory;
+        return originalFactory as PatchedModuleFactory;
+    }
+
+    // Fast path: apply every replacement, then compile the result once. Each replacement used to
+    // compile the whole module again just to check for syntax errors; that only matters when
+    // something is broken, and then the original replacement-by-replacement path below runs instead.
+    const fastResult = patchFactoryOptimistic(moduleId, originalFactory, originalFactoryCode, matcher);
+    if (fastResult != null) return fastResult;
+
+    return patchFactoryOriginal(moduleId, originalFactory, originalFactoryCode, matcher);
+}
+
+/**
+ * Applies all matching patches with a single eval at the end. Shared state (the patches list, logs)
+ * is only touched once that eval succeeded; returns null without side effects otherwise.
+ */
+function patchFactoryOptimistic(moduleId: PropertyKey, originalFactory: AnyModuleFactory, originalFactoryCode: string, matcher: PatchMatcher): PatchedModuleFactory | null {
+    const isArrowFunction = originalFactoryCode.startsWith("(");
+    let patchedCode = "0," + (!isArrowFunction ? "function" : "") + originalFactoryCode.slice(originalFactoryCode.indexOf("("));
+
+    const patchedBy = new Set<string>();
+    const consumedPatches: Patch[] = [];
+    const deferredLogs: Array<() => void> = [];
+    const deferredTimings: typeof patchTimings = [];
+    const buildNumber = getBuildNumber();
+
+    for (const patch of patches) {
+        if (isOutsideBuildRange(patch, buildNumber)) {
+            consumedPatches.push(patch);
+            continue;
+        }
+
+        if (!patchFindMatches(patch, originalFactoryCode, matcher)) {
+            continue;
+        }
+
+        const previousPatchedCode = patchedCode;
+        let shouldRestorePrevious = false;
+        let markedAsPatched = false;
+
+        const executePatch = traceFunctionWithResults(`patch by ${patch.plugin}`, (match: string | RegExp, replace: string) => {
+            if (typeof match !== "string" && match.global) {
+                match.lastIndex = 0;
+            }
+
+            return patchedCode.replace(match, replace);
+        });
+
+        for (const replacement of patch.replacement as PatchReplacement[]) {
+            if (isOutsideBuildRange(replacement, buildNumber)) {
+                continue;
+            }
+
+            let newPatchedCode: string;
+            try {
+                const [patchResult, totalTime] = executePatch(replacement.match, replacement.replace as string);
+                newPatchedCode = patchResult;
+
+                if (IS_REPORTER) {
+                    deferredTimings.push([patch.plugin, moduleId, replacement.match, totalTime]);
+                }
+            } catch {
+                // A replacement threw: let the original path handle (and report) it.
+                return null;
+            }
+
+            if (newPatchedCode === patchedCode) {
+                if (!(patch.noWarn || replacement.noWarn)) {
+                    const codeAtWarning = patchedCode;
+                    deferredLogs.push(() => {
+                        logger.warn(`Patch by ${patch.plugin} had no effect (Module id is ${String(moduleId)}): ${replacement.match}`);
+                        if (IS_DEV) {
+                            logger.debug("Function Source:\n", codeAtWarning);
+                        }
+                    });
+                }
+
+                if (patch.group) {
+                    deferredLogs.push(() => logger.warn(`Undoing patch group ${patch.find} by ${patch.plugin} because replacement ${replacement.match} had no effect`));
+                    shouldRestorePrevious = true;
+                    break;
+                }
+
+                continue;
+            }
+
+            if (!patchedBy.has(patch.plugin)) {
+                patchedBy.add(patch.plugin);
+                markedAsPatched = true;
+            }
+
+            patchedCode = newPatchedCode;
+        }
+
+        if (shouldRestorePrevious) {
+            patchedCode = previousPatchedCode;
+
+            if (markedAsPatched) {
+                patchedBy.delete(patch.plugin);
+            }
+        }
+
+        if (!patch.all) {
+            consumedPatches.push(patch);
+        }
+    }
+
+    let patchedFactory = originalFactory;
+    let patchedSource = patchedCode;
+    if (patchedBy.size > 0) {
+        patchedSource = makePatchedSource(moduleId, patchedBy, patchedCode);
+        try {
+            patchedFactory = (0, eval)(patchedSource);
+        } catch {
+            return null;
+        }
+    }
+
+    // Commit: everything below is what the original path would have done along the way.
+    if (consumedPatches.length) {
+        const consumed = new Set(consumedPatches);
+        for (let i = patches.length - 1; i >= 0; i--) {
+            if (consumed.has(patches[i])) patches.splice(i, 1);
+        }
+    }
+    for (const log of deferredLogs) log();
+    if (IS_REPORTER) patchTimings.push(...deferredTimings);
+
+    patchedFactory[SYM_ORIGINAL_FACTORY] = originalFactory;
+
+    if (IS_DEV && patchedFactory !== originalFactory) {
+        originalFactory[SYM_PATCHED_SOURCE] = patchedSource;
+        originalFactory[SYM_PATCHED_BY] = patchedBy;
+    }
+
+    return patchedFactory as PatchedModuleFactory;
+}
+
+/** Vencord's original patching loop (one eval per replacement), used when the fast path fails. */
+function patchFactoryOriginal(moduleId: PropertyKey, originalFactory: AnyModuleFactory, originalFactoryCode: string, matcher: PatchMatcher): PatchedModuleFactory {
+    // The fast path stopped on an error, so find matches again for this module.
+    matcher.scan(originalFactoryCode);
+
     const isArrowFunction = originalFactoryCode.startsWith("(");
 
     // 0, prefix to turn it into an expression: 0,function(){} would be invalid syntax without the 0,
@@ -532,9 +732,7 @@ function patchFactory(moduleId: PropertyKey, originalFactory: AnyModuleFactory):
             continue;
         }
 
-        const moduleMatches = typeof patch.find === "string"
-            ? originalFactoryCode.includes(patch.find)
-            : (patch.find.global && (patch.find.lastIndex = 0), patch.find.test(originalFactoryCode));
+        const moduleMatches = patchFindMatches(patch, originalFactoryCode, matcher);
 
         if (!moduleMatches) {
             continue;
@@ -596,7 +794,7 @@ function patchFactory(moduleId: PropertyKey, originalFactory: AnyModuleFactory):
                     pluginsList.push(patch.plugin);
                 }
 
-                const newPatchedSource = `// Webpack Module ${String(moduleId)} - Patched by ${pluginsList.join(", ")}\n${newPatchedCode}\n//# sourceURL=file:///WebpackModule${String(moduleId)}`;
+                const newPatchedSource = makePatchedSource(moduleId, pluginsList, newPatchedCode);
                 const newPatchedFactory = (0, eval)(newPatchedSource);
 
                 if (!patchedBy.has(patch.plugin)) {
