@@ -68,7 +68,7 @@ function VencordPopoutButton() {
                     ref={buttonRef}
                     className="vc-toolbox-btn"
                     onClick={() => setShow(v => !v)}
-                    tooltip={isShown ? null : "Godcord Toolbox"}
+                    tooltip={isShown ? null : "Nessacord Toolbox"}
                     icon={() => <Icon isShown={isShown} />}
                     selected={isShown}
                 />
@@ -79,7 +79,7 @@ function VencordPopoutButton() {
 
 export default definePlugin({
     name: "VencordToolbox",
-    description: "Adds a button to the titlebar that houses Godcord quick actions",
+    description: "Adds a button to the titlebar that houses Nessacord quick actions",
     tags: ["Utility", "Developers"],
     authors: [Devs.Ven, Devs.AutumnVN],
 

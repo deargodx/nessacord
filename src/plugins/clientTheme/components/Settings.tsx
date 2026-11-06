@@ -71,7 +71,7 @@ export function ThemeSettingsComponent() {
             <div className={cl("container")}>
                 <div className={cl("settings-labels")}>
                     <Heading className={Margins.bottom8}>Theme Color</Heading>
-                    <Paragraph>Add a color to your Godcord client theme</Paragraph>
+                    <Paragraph>Add a color to your Nessacord client theme</Paragraph>
                 </div>
                 <ColorPicker
                     color={parseInt(settings.store.color, 16)}

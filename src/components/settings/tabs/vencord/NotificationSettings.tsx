@@ -20,7 +20,7 @@ export function NotificationSection() {
         <section className={Margins.top16}>
             <Heading className={Margins.bottom8}>Notifications</Heading>
             <Paragraph className={Margins.bottom8}>
-                Settings for Notifications sent by Godcord.
+                Settings for Notifications sent by Nessacord.
                 This does NOT include regular notifications (messages, etc)
             </Paragraph>
             <Flex>
@@ -62,16 +62,16 @@ function NotificationSettings() {
             <Paragraph className={Margins.bottom8}>
                 Some plugins may show you notifications. These come in two styles:
                 <ul>
-                    <li><strong>Godcord Notifications</strong>: These are in-app notifications</li>
+                    <li><strong>Nessacord Notifications</strong>: These are in-app notifications</li>
                     <li><strong>Desktop Notifications</strong>: Native Desktop notifications (like when you get a ping)</li>
                 </ul>
             </Paragraph>
             <Select
                 placeholder="Notification Style"
                 options={[
-                    { label: "Only use Desktop notifications when Godcord is not focused", value: "not-focused", default: true },
+                    { label: "Only use Desktop notifications when Nessacord is not focused", value: "not-focused", default: true },
                     { label: "Always use Desktop notifications", value: "always" },
-                    { label: "Always use Godcord notifications", value: "never" },
+                    { label: "Always use Nessacord notifications", value: "never" },
                 ] satisfies Array<{ value: typeof settings["useNative"]; } & Record<string, any>>}
                 closeOnSelect={true}
                 select={v => settings.useNative = v}

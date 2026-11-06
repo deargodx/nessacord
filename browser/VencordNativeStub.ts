@@ -43,6 +43,10 @@ let win: Window;
 
 // probably should make this less cursed at some point
 window.VencordNative = {
+    nessacord: {
+        markHealthy: async () => { },
+    },
+
     themes: {
         uploadTheme: (fileName: string, fileData: string) => DataStore.set(fileName, fileData, themeStore),
         deleteTheme: (fileName: string) => DataStore.del(fileName, themeStore),

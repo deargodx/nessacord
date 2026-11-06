@@ -257,8 +257,8 @@ function CustomInstanceAboutComponent() {
     if (!cspAllowed)
         return (
             <Card variant="warning">
-                <Heading className={Margins.bottom8}>Allow Godcord to connect to ListenBrainz instance</Heading>
-                <Paragraph>To use your custom ListenBrainz instance, you must first allow Godcord to connect to it.</Paragraph>
+                <Heading className={Margins.bottom8}>Allow Nessacord to connect to ListenBrainz instance</Heading>
+                <Paragraph>To use your custom ListenBrainz instance, you must first allow Nessacord to connect to it.</Paragraph>
                 <Button
                     size="small"
                     className={Margins.top8}

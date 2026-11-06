@@ -17,6 +17,8 @@
 */
 
 export const enum IpcEvents {
+    NESSACORD_MARK_HEALTHY = "NessacordMarkHealthy",
+
     INIT_FILE_WATCHERS = "VencordInitFileWatchers",
 
     OPEN_QUICKCSS = "VencordOpenQuickCss",

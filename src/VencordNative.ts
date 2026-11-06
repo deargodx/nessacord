@@ -31,6 +31,10 @@ for (const [plugin, methods] of Object.entries(pluginIpcMap)) {
 }
 
 export default {
+    nessacord: {
+        markHealthy: () => invoke<void>(IpcEvents.NESSACORD_MARK_HEALTHY),
+    },
+
     themes: {
         uploadTheme: async (fileName: string, fileData: string): Promise<void> => {
             throw new Error("uploadTheme is WEB only");

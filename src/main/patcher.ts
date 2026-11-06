@@ -21,7 +21,7 @@ import electron, { app, BrowserWindowConstructorOptions, Menu } from "electron";
 import { dirname, join } from "path";
 
 import { RendererSettings } from "./settings";
-import { IS_VANILLA } from "./utils/constants";
+import { DATA_DIR, IS_VANILLA } from "./utils/constants";
 
 console.log("[Vencord] Starting up...");
 
@@ -131,10 +131,18 @@ if (!IS_VANILLA) {
         s.set("DANGEROUS_ENABLE_DEVTOOLS_ONLY_ENABLE_IF_YOU_KNOW_WHAT_YOURE_DOING", true);
     });
 
-    process.env.DATA_DIR = join(app.getPath("userData"), "..", "Vencord");
+    process.env.DATA_DIR = DATA_DIR;
+
+    // Development only: expose Chrome DevTools Protocol so the live client can be inspected and screenshotted.
+    if (IS_DEV && process.env.NESSACORD_DEBUG_PORT) {
+        app.commandLine.appendSwitch("remote-debugging-port", process.env.NESSACORD_DEBUG_PORT);
+        app.commandLine.appendSwitch("remote-debugging-address", "127.0.0.1");
+    }
 } else {
     console.log("[Vencord] Running in vanilla mode. Not loading Vencord");
 }
 
 console.log("[Vencord] Loading original Discord app.asar");
+// Tells the injector that any error from here on is Discord's own, not a failure to load Nessacord.
+(global as any).__nessacordDiscordLoading = true;
 require(require.main!.filename);

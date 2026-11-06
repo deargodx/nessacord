@@ -48,7 +48,7 @@ function AutoTranslateConfirmModal(props: RenderModalProps) {
     return (
         <ConfirmModal
             {...props}
-            title="Godcord Auto-Translate Enabled"
+            title="Nessacord Auto-Translate Enabled"
             subtitle="You just enabled Auto Translate! Any message will automatically be translated before being sent."
             confirmText="Disable Auto-Translate"
             onConfirm={() => settings.store.autoTranslate = false}

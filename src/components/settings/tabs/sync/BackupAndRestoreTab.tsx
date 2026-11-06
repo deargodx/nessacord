@@ -38,7 +38,7 @@ function BackupAndRestoreTab() {
                 <Paragraph size="md" className={Margins.bottom8}>
                     You can import and export your Vencord settings as a JSON file.
                     This allows you to easily transfer your settings to another device,
-                    or recover your settings after reinstalling Godcord.
+                    or recover your settings after reinstalling Nessacord.
                 </Paragraph>
 
                 <Heading tag="h4">Settings Export contains:</Heading>

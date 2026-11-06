@@ -126,7 +126,7 @@ async function runUpdateCheck() {
             await update();
             if (Settings.autoUpdateNotification) {
                 notify({
-                    title: "Godcord has been updated!",
+                    title: "Nessacord has been updated!",
                     body: "Click here to restart",
                     onClick: relaunch
                 });
@@ -135,7 +135,7 @@ async function runUpdateCheck() {
         }
 
         notify({
-            title: "A Godcord update is available!",
+            title: "A Nessacord update is available!",
             body: "Click here to view the update",
             onClick: () => openSettingsTabModal(UpdaterTab!)
         });
@@ -149,6 +149,12 @@ async function init() {
     startAllPlugins(StartAt.WebpackReady);
 
     syncSettings();
+
+    // Nessacord: once the app has run this long, reset the injector's failed-launch count.
+    if (IS_DISCORD_DESKTOP) setTimeout(() => VencordNative.nessacord.markHealthy().catch(() => { }), 10_000);
+
+    // Nessacord: once the app has run this long, reset the injector's failed-launch count.
+    if (IS_DISCORD_DESKTOP) setTimeout(() => VencordNative.nessacord.markHealthy().catch(() => { }), 10_000);
 
     if (!IS_WEB && !IS_UPDATER_DISABLED) {
         runUpdateCheck();

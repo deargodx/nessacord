@@ -18,8 +18,10 @@
 
 import { app } from "electron";
 import EventEmitter from "events";
-import { copyFileSync, existsSync, readdirSync, renameSync } from "original-fs";
+import { existsSync, readdirSync, renameSync, rmSync, writeFileSync } from "original-fs";
 import { basename, dirname, join } from "path";
+
+import { makeInjectorAsar } from "./injector";
 
 function isNewer($new: string, old: string) {
     const newParts = $new.slice(4).split(".").map(Number);
@@ -40,29 +42,36 @@ function patchLatest() {
         const currentVersion = basename(currentAppPath);
         const discordPath = join(currentAppPath, "..");
 
+        // Only finished installs: Discord's updater stages new versions in ".app-<version>.installing".
         const latestVersion = readdirSync(discordPath).reduce((prev, curr) => {
-            return (curr.startsWith("app-") && isNewer(curr, prev))
+            return (/^app-\d+(\.\d+)*$/.test(curr) && isNewer(curr, prev))
                 ? curr
                 : prev;
         }, currentVersion as string);
 
         if (latestVersion === currentVersion) return;
 
-        const oldResources = join(discordPath, currentVersion, "resources");
-        const oldVencordAsar = join(oldResources, "app.asar");
-
         const resources = join(discordPath, latestVersion, "resources");
         const newAppAsar = join(resources, "app.asar");
         const newAppAsarBackup = join(resources, "_app.asar");
 
-        if (!existsSync(oldVencordAsar) || !existsSync(newAppAsar) || existsSync(newAppAsarBackup)) return;
+        if (!existsSync(newAppAsar) || existsSync(newAppAsarBackup)) return;
 
-        console.info(`[Vencord] Detected Host Update (${currentVersion} -> ${latestVersion}). Repatching...`);
+        console.info(`[Nessacord] Detected Host Update (${currentVersion} -> ${latestVersion}). Repatching...`);
 
-        renameSync(newAppAsar, newAppAsarBackup);
-        copyFileSync(oldVencordAsar, newAppAsar);
+        // Nessacord writes a fresh injector instead of copying the old version's app.asar, so this
+        // works even when Discord has already removed the old version's folder.
+        const tempAsar = join(resources, "app.asar.nessacord-tmp");
+        writeFileSync(tempAsar, makeInjectorAsar(join(__dirname, "patcher.js")));
+        try {
+            renameSync(newAppAsar, newAppAsarBackup);
+        } catch (err) {
+            rmSync(tempAsar, { force: true });
+            throw err;
+        }
+        renameSync(tempAsar, newAppAsar);
     } catch (err) {
-        console.error("[Vencord] Failed to repatch latest host update", err);
+        console.error("[Nessacord] Failed to repatch latest host update", err);
     }
 }
 

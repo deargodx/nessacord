@@ -96,8 +96,8 @@ function ExcludedPluginsList({ search }: { search: string; }) {
         discordDesktop: "Discord Desktop app",
         vesktop: "Vesktop app",
         web: "Vesktop app and the Web version of Discord",
-        dev: "Developer version of Godcord",
-        browser: "Web Browser version of Godcord"
+        dev: "Developer version of Nessacord",
+        browser: "Web Browser version of Nessacord"
     };
 
     return (
@@ -228,7 +228,7 @@ function PluginSettings() {
 
         if (isRequired) {
             const tooltipText = p.required || !depMap[p.name]
-                ? "This plugin is required for Godcord to function."
+                ? "This plugin is required for Nessacord to function."
                 : makeDependencyList(depMap[p.name]?.filter(d => settings.plugins[d].enabled));
 
             requiredPlugins.push(

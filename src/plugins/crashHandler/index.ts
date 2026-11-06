@@ -99,8 +99,8 @@ export default definePlugin({
                     try {
                         showNotification({
                             color: "#eed202",
-                            title: "Godcord has crashed!",
-                            body: "Awn :( Godcord has crashed two times rapidly, not attempting to recover.",
+                            title: "Nessacord has crashed!",
+                            body: "Awn :( Nessacord has crashed two times rapidly, not attempting to recover.",
                             noPersist: true
                         });
                     } catch { }
@@ -116,7 +116,7 @@ export default definePlugin({
             try {
                 if (!hasCrashedOnce) {
                     hasCrashedOnce = true;
-                    maybePromptToUpdate("Uh oh, Godcord has just crashed... but good news, there is a Godcord update available that might fix this issue! Would you like to update now?", true);
+                    maybePromptToUpdate("Uh oh, Nessacord has just crashed... but good news, there is a Nessacord update available that might fix this issue! Would you like to update now?", true);
                 }
             } catch { }
 
@@ -134,7 +134,7 @@ export default definePlugin({
         try {
             showNotification({
                 color: "#eed202",
-                title: "Godcord has crashed!",
+                title: "Nessacord has crashed!",
                 body: "Attempting to recover...",
                 noPersist: true
             });
