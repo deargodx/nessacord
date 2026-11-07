@@ -203,6 +203,11 @@
     background: transparent !important;
 }
 
+/* The DM list paints its own background-gradient-high, which would hide the lace. */
+[class*="sidebarList_"] [class*="privateChannels_"] [class*="scroller_"] {
+    background: transparent !important;
+}
+
 [class*="base_"] > [class*="content_"] > [class*="page_"] {
     margin-left: 6px;
     background: var(--nc-panel) !important;
@@ -219,7 +224,7 @@
 }
 
 /* Hidden only while the menu is there to bring it back. */
-html:not([data-nessacord~="servers-open"])[class*="sidebar_"]:not([data-collapsed="true"]):has(> [class*="sidebarList_"] > .nessacord-brand) > nav[class*="guilds_"] {
+html:not([data-nessacord~="servers-open"]) [class*="sidebar_"]:not([data-collapsed="true"]):has(> [class*="sidebarList_"] > .nessacord-brand) > nav[class*="guilds_"] {
     display: none;
 }
 
@@ -348,9 +353,9 @@ section[class*="panels_"] [class*="nameTag_"] [class*="title_"] {
 
 /* ── Avatars ───────────────────────────────────────────────────────────────────────────────── */
 
-[data-nessacord~="grey-avatars"]img[class*="avatar_"],
-[data-nessacord~="grey-avatars"][class*="avatarStack_"] img,
-[data-nessacord~="grey-avatars"][class*="privateChannels_"] img {
+[data-nessacord~="grey-avatars"] img[class*="avatar_"],
+[data-nessacord~="grey-avatars"] [class*="avatarStack_"] img,
+[data-nessacord~="grey-avatars"] [class*="privateChannels_"] img {
     filter: grayscale(1);
 }
 
@@ -385,7 +390,7 @@ section[class*="panels_"] [class*="nameTag_"] [class*="title_"] {
     pointer-events: none;
 }
 
-[data-nessacord~="no-photo"][class*="characterBackground_"]::before {
+[data-nessacord~="no-photo"] [class*="characterBackground_"]::before {
     display: none;
 }
 
@@ -515,7 +520,7 @@ main[class*="chatContent_"] {
         var(--nessacord-photo) right center / auto 100% no-repeat !important;
 }
 
-[data-nessacord~="no-photo"]main[class*="chatContent_"] {
+[data-nessacord~="no-photo"] main[class*="chatContent_"] {
     background: transparent !important;
 }
 
@@ -607,13 +612,13 @@ div[class*="members_"] [class*="member_"] [class*="name_"] {
 
 /* ── Names ─────────────────────────────────────────────────────────────────────────────────── */
 
-[data-nessacord~="mono-names"][class*="dnsFont_"],
-[data-nessacord~="mono-names"][class*="dnsFont_"] *,
-[data-nessacord~="mono-names"]h3[class*="header_"] [class*="username_"],
-[data-nessacord~="mono-names"]h3[class*="header_"] [class*="username_"] *,
-[data-nessacord~="mono-names"]div[class*="members_"] [class*="username_"],
-[data-nessacord~="mono-names"]div[class*="members_"] [class*="username_"] [class*="name_"],
-[data-nessacord~="mono-names"]section[class*="panels_"] [class*="nameTag_"] [class*="title_"] * {
+[data-nessacord~="mono-names"] [class*="dnsFont_"],
+[data-nessacord~="mono-names"] [class*="dnsFont_"] *,
+[data-nessacord~="mono-names"] h3[class*="header_"] [class*="username_"],
+[data-nessacord~="mono-names"] h3[class*="header_"] [class*="username_"] *,
+[data-nessacord~="mono-names"] div[class*="members_"] [class*="username_"],
+[data-nessacord~="mono-names"] div[class*="members_"] [class*="username_"] [class*="name_"],
+[data-nessacord~="mono-names"] section[class*="panels_"] [class*="nameTag_"] [class*="title_"] * {
     color: var(--nc-text) !important;
     background: none !important;
     -webkit-text-fill-color: currentcolor !important;
