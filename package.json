@@ -1,21 +1,22 @@
 {
-    "name": "vencord",
+    "name": "nessacord",
     "private": "true",
     "version": "1.15.16",
-    "description": "The cutest Discord client mod",
-    "homepage": "https://github.com/Vendicated/Vencord#readme",
+    "description": "A Discord client mod in black and lace, based on Vencord",
+    "homepage": "https://github.com/SerenityDiscko/nessacord#readme",
     "bugs": {
-        "url": "https://github.com/Vendicated/Vencord/issues"
+        "url": "https://github.com/SerenityDiscko/nessacord/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Vendicated/Vencord.git"
+        "url": "git+https://github.com/SerenityDiscko/nessacord.git"
     },
     "license": "GPL-3.0-or-later",
-    "author": "Vendicated",
+    "author": "deargod",
     "scripts": {
         "build": "node --require=./scripts/suppressExperimentalWarnings.js scripts/build/build.mjs",
         "buildStandalone": "pnpm build --standalone",
+        "buildInstaller": "node scripts/buildInstaller.mjs",
         "buildWeb": "node --require=./scripts/suppressExperimentalWarnings.js scripts/build/buildWeb.mjs",
         "buildWebStandalone": "pnpm buildWeb --standalone",
         "buildReporter": "pnpm buildWebStandalone --reporter --skip-extension",

@@ -1,0 +1,71 @@
+name: Release
+on:
+    push:
+        branches:
+            - main
+        paths:
+            - .github/workflows/release.yml
+            - src/**
+            - installer/**
+            - scripts/build/**
+            - scripts/buildInstaller.mjs
+            - package.json
+            - pnpm-lock.yaml
+    workflow_dispatch:
+env:
+    FORCE_COLOR: true
+permissions:
+    contents: write
+concurrency:
+    group: release
+    cancel-in-progress: false
+
+# One release, replaced on every build. The installer downloads from it (checking SHA256SUMS), and
+# Nessacord's updater compares the last word of its title with the build's git hash.
+jobs:
+    Release:
+        runs-on: windows-latest
+        defaults:
+            run:
+                shell: bash
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+            - name: Use Node.js
+              uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+              with:
+                  node-version: 24
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build
+              run: |
+                  echo "VENCORD_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+                  export VENCORD_HASH=$(git rev-parse --short HEAD)
+                  pnpm build --standalone
+                  pnpm buildInstaller
+
+            - name: Checksums
+              working-directory: dist
+              run: sha256sum patcher.js preload.js renderer.js renderer.css NessacordInstaller.exe > SHA256SUMS
+
+            - name: Publish
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  files="dist/patcher.js dist/preload.js dist/renderer.js dist/renderer.css dist/NessacordInstaller.exe dist/SHA256SUMS"
+                  if gh release view build > /dev/null 2>&1; then
+                      git push --force origin HEAD:refs/tags/build
+                      gh release upload build $files --clobber
+                      gh release edit build --title "Nessacord $VENCORD_HASH"
+                  else
+                      gh release create build $files --target "$GITHUB_SHA" --latest --title "Nessacord $VENCORD_HASH" \
+                          --notes "Download **NessacordInstaller.exe** and run it. Nessacord updates itself after that."
+                  fi

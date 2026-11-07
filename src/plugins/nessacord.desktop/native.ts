@@ -5,13 +5,14 @@
  */
 
 // Nessacord, main-process side: window/taskbar icon, window title, tray icon and tooltip, splash
-// logo and shortcuts. Based on deargod's GodCord.
+// logo, shortcuts and (opt-in) the Task Manager name. Based on deargod's GodCord.
 //
 // Nothing is exported on purpose: every export of a native.ts is registered as an IPC handler.
 // Discord's userData path is never touched (no app.setName), so logins and settings stay put.
 
 import { RendererSettings } from "@main/settings";
-import { DATA_DIR } from "@main/utils/constants";
+import { DATA_DIR, IS_VANILLA } from "@main/utils/constants";
+import { spawn } from "child_process";
 import { app, BrowserWindow, NativeImage, nativeImage, shell, ShortcutDetails, Tray } from "electron";
 import fs, { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, watch, writeFileSync } from "fs";
 import { basename, dirname, join, sep } from "path";
@@ -28,6 +29,53 @@ function pluginSettings() {
 function isEnabled() {
     // enabledByDefault: on the very first launch the plugin has no settings entry yet.
     return pluginSettings()?.enabled !== false;
+}
+
+// ── Task Manager (opt-in) ─────────────────────────────────────────────────────────────────────
+// Task Manager names an app after its exe's description, so showing Nessacord there means running
+// Discord from Nessacord.exe: a copy of Discord's exe with Nessacord's name and icon, made by the
+// installer for each Discord version. Discord's launchers always start Discord's own exe, so
+// Nessacord hands over to Nessacord.exe here, before any of Discord's code runs. Off by default:
+// Krisp noise suppression only runs from Discord's own signed exe.
+const BRANDED_EXE = "Nessacord.exe";
+
+function useBrandedExe() {
+    const appFolder = dirname(process.execPath);
+    const branded = join(appFolder, BRANDED_EXE);
+
+    if (basename(process.execPath).toLowerCase() === BRANDED_EXE.toLowerCase()) {
+        // Discord's own code keeps seeing its own exe, which it uses for shortcuts, autostart and
+        // restarts after updates.
+        const discordExe = readdirSync(appFolder).find(f => /^Discord\w*\.exe$/i.test(f));
+        if (discordExe) process.execPath = join(appFolder, discordExe);
+        return;
+    }
+
+    if (!isEnabled() || pluginSettings()?.taskManagerName !== true) {
+        // Turned off: the copy is ~230 MB.
+        if (existsSync(branded)) rmSync(branded);
+        return;
+    }
+
+    // Squirrel's install and update steps run Discord's exe and expect it to finish them.
+    if (process.argv.some(arg => arg.startsWith("--squirrel"))) return;
+
+    if (existsSync(branded)) {
+        spawn(branded, process.argv.slice(1), { detached: true, stdio: "ignore" }).unref();
+        process.exit(0);
+    }
+
+    // A new Discord version: make Nessacord.exe for next time, and carry on from Discord's exe now.
+    const installer = join(DATA_DIR, "NessacordInstaller.exe");
+    if (existsSync(installer)) spawn(installer, ["--brand-exe", appFolder], { detached: true, stdio: "ignore" }).unref();
+}
+
+if (process.platform === "win32" && !IS_VANILLA) {
+    try {
+        useBrandedExe();
+    } catch (err) {
+        console.error("[Nessacord] Could not switch to Nessacord.exe", err);
+    }
 }
 
 // The .ico lives in Nessacord's data folder: Windows needs a file path for shortcut and taskbar icons.
@@ -210,6 +258,7 @@ const APP = "Discord(?: (?:Canary|PTB|Development))?";
 const WHOLE_APP_NAME = new RegExp(`^${APP}$`);
 const TRAILING_APP_NAME = new RegExp(`\\s*-\\s*${APP}$`);
 const LEADING_APP_NAME = new RegExp(`^${APP}(?= \\||$| Updater)`);
+const PAGE_URL = /^(?:https?:\/\/)?(?:[\w-]+\.)*discord\.com\//;
 
 function brandTitle(raw: string) {
     const prefix = UNREAD_PREFIX.exec(raw)?.[0] ?? "";
@@ -219,7 +268,8 @@ function brandTitle(raw: string) {
 
     if (TRAILING_APP_NAME.test(rest)) {
         const page = rest.replace(TRAILING_APP_NAME, "").trim();
-        return prefix + (page ? `${page} - ${APP_NAME}` : APP_NAME);
+        // A page without a title (the login screen) shows up as its URL.
+        return prefix + (page && !PAGE_URL.test(page) ? `${page} - ${APP_NAME}` : APP_NAME);
     }
 
     return prefix + rest.replace(LEADING_APP_NAME, APP_NAME);

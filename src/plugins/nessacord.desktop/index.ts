@@ -59,6 +59,12 @@ const settings = definePluginSettings({
         description: "Show Discord's shortcuts (Start menu, desktop and taskbar pins) as Nessacord, with the Nessacord icon (Windows). Turning this off puts them back.",
         default: true,
         restartNeeded: true
+    },
+    taskManagerName: {
+        type: OptionType.BOOLEAN,
+        description: "Show Nessacord in Task Manager (Windows). Discord then runs from a renamed copy of its program, and Krisp noise suppression only runs from Discord's own program, so Discord's Standard noise suppression is used instead.",
+        default: false,
+        restartNeeded: true
     }
 });
 

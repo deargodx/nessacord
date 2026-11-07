@@ -150,12 +150,6 @@ async function init() {
 
     syncSettings();
 
-    // Nessacord: once the app has run this long, reset the injector's failed-launch count.
-    if (IS_DISCORD_DESKTOP) setTimeout(() => VencordNative.nessacord.markHealthy().catch(() => { }), 10_000);
-
-    // Nessacord: once the app has run this long, reset the injector's failed-launch count.
-    if (IS_DISCORD_DESKTOP) setTimeout(() => VencordNative.nessacord.markHealthy().catch(() => { }), 10_000);
-
     if (!IS_WEB && !IS_UPDATER_DISABLED) {
         runUpdateCheck();
 
@@ -186,6 +180,10 @@ init();
 
 document.addEventListener("DOMContentLoaded", () => {
     startAllPlugins(StartAt.DOMContentLoaded);
+
+    // Nessacord: once the window has been up this long, reset the injector's failed-launch count.
+    // Not tied to logging in: a logged-out start (the login screen) is a healthy launch too.
+    if (IS_DISCORD_DESKTOP) setTimeout(() => VencordNative.nessacord.markHealthy().catch(() => { }), 10_000);
 
     if (IS_DISCORD_DESKTOP && Settings.nativeTitleBar) {
         enableStyle(nativeTitleBarStyles);
