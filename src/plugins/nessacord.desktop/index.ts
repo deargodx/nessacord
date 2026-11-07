@@ -85,9 +85,10 @@ export default definePlugin({
             replacement: {
                 // The app's name only. Discord the company and its services keep their name:
                 // "Discord's Terms of Service", "Discord Inc.", "Discord Staff", "Discord Support"...
+                // The phone app keeps its name too ("Scan this with the Discord mobile app").
                 // All-caps "DISCORD" is never matched: it is the Crisis Text Line keyword
                 // ("text DISCORD to 741741") in Discord's safety resources and must stay correct.
-                match: /(?<![\w$])Discord(?![\w$])(?!(?:\\?'|’|\\u2019)?s? (?:Terms|Privacy|Community|Staff|Support|Safety|Trust|Developers?|API|Partners?|Security|Official|Server|Inc)\b|,? Inc\b)/g,
+                match: /(?<![\w$])Discord(?![\w$])(?!(?:\\?'|’|\\u2019)?s? (?:Terms|Privacy|Community|Staff|Support|Safety|Trust|Developers?|API|Partners?|Security|Official|Server|Inc|[Mm]obile)\b|,? Inc\b)/g,
                 replace: "Nessacord"
             }
         }

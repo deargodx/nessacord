@@ -1,0 +1,630 @@
+/* Nessacord's look. Discord's class names end in a hash that changes between Discord builds, so
+   elements are matched by the stable start of their class name ([class*="name_"]). */
+
+/* ── Palette and type ──────────────────────────────────────────────────────────────────────── */
+
+:root {
+    --nc-panel: rgb(2 2 2 / 66%);
+    --nc-raised: #0b0b0b;
+    --nc-line: rgb(255 255 255 / 9%);
+    --nc-line-strong: rgb(255 255 255 / 16%);
+    --nc-text: #f1f0ee;
+    --nc-text-soft: #d6d4d0;
+    --nc-muted: #8c8c8c;
+    --nc-faint: #5c5c5c;
+    --nc-online: #478a6a;
+    --nc-idle: #a88b4f;
+    --nc-dnd: #a54646;
+    --nc-serif: "Nessacord Serif", "gg sans", "Noto Sans", georgia, serif;
+    --nc-radius: 14px;
+    --nc-gap: 16px;
+    --nessacord-photo: var(--nessacord-photo-default);
+}
+
+/* Discord sets its colours on these theme classes (and a Nitro colour theme overrides them), so
+   the overrides are !important. Light theme gets the same palette: Nessacord is always dark. */
+:root,
+.theme-dark,
+.theme-darker,
+.theme-midnight,
+.theme-light {
+    --font-primary: var(--nc-serif) !important;
+    --font-display: var(--nc-serif) !important;
+    --font-headline: var(--nc-serif) !important;
+    --app-frame-background: #000 !important;
+    --app-frame-border: var(--nc-line) !important;
+    --background-base-lowest: #000 !important;
+    --background-base-lower: #030303 !important;
+    --background-base-low: #070707 !important;
+    --background-surface-high: #0b0b0b !important;
+    --background-surface-higher: #101010 !important;
+    --background-surface-highest: #151515 !important;
+    --background-accent: #1c1c1c !important;
+    --background-secondary-alt: #070707 !important;
+    --bg-surface-raised: #0b0b0b !important;
+    --panel-bg: transparent !important;
+    --chat-background: transparent !important;
+    --chat-background-default: transparent !important;
+    --chat-border: var(--nc-line) !important;
+    --modal-background: #050505 !important;
+    --modal-footer-background: #080808 !important;
+    --card-background-default: #0a0a0a !important;
+    --card-border-default: var(--nc-line) !important;
+    --background-mod-subtle: rgb(255 255 255 / 5%) !important;
+    --background-mod-muted: rgb(255 255 255 / 4%) !important;
+    --background-mod-normal: rgb(255 255 255 / 8%) !important;
+    --background-mod-strong: rgb(255 255 255 / 12%) !important;
+    --interactive-background-default: transparent !important;
+    --interactive-background-hover: rgb(255 255 255 / 5%) !important;
+    --interactive-background-active: rgb(255 255 255 / 9%) !important;
+    --interactive-background-selected: rgb(255 255 255 / 8%) !important;
+    --message-background-hover: rgb(255 255 255 / 2.5%) !important;
+    --message-highlight-background-default: rgb(255 255 255 / 6%) !important;
+    --message-highlight-background-hover: rgb(255 255 255 / 5%) !important;
+    --message-mentioned-background-default: rgb(255 255 255 / 7%) !important;
+    --message-mentioned-background-hover: rgb(255 255 255 / 5.5%) !important;
+    --mention-background: rgb(255 255 255 / 12%) !important;
+    --mention-foreground: var(--nc-text) !important;
+    --border-subtle: rgb(255 255 255 / 7%) !important;
+    --border-muted: rgb(255 255 255 / 9%) !important;
+    --border-normal: rgb(255 255 255 / 12%) !important;
+    --border-strong: rgb(255 255 255 / 20%) !important;
+    --text-default: var(--nc-text-soft) !important;
+    --text-strong: var(--nc-text) !important;
+    --text-muted: var(--nc-muted) !important;
+    --text-subtle: #a3a3a3 !important;
+    --text-link: #cfc9bf !important;
+    --text-brand: var(--nc-text) !important;
+    --channels-default: var(--nc-muted) !important;
+    --interactive-text-default: var(--nc-muted) !important;
+    --interactive-text-hover: #dcdad6 !important;
+    --interactive-text-active: var(--nc-text) !important;
+    --interactive-muted: #4a4a4a !important;
+    --interactive-icon-default: var(--nc-muted) !important;
+    --interactive-icon-hover: #dcdad6 !important;
+    --interactive-icon-active: var(--nc-text) !important;
+    --icon-default: #b3b1ad !important;
+    --icon-strong: var(--nc-text) !important;
+    --icon-muted: #6e6e6e !important;
+    --icon-subtle: #8c8c8c !important;
+    --icon-brand: var(--nc-text) !important;
+    --icon-link: #cfc9bf !important;
+    --brand-500: #4d4d4d !important;
+    --brand-560: #444 !important;
+    --brand-600: #3b3b3b !important;
+    --background-brand: #4d4d4d !important;
+    --control-brand-foreground: var(--nc-text) !important;
+    --control-brand-foreground-new: var(--nc-text) !important;
+    --control-primary-background-default: #e9e6e1 !important;
+    --control-primary-background-hover: #fff !important;
+    --control-primary-background-active: #d3d0ca !important;
+    --control-primary-text-default: #000 !important;
+    --control-primary-text-hover: #000 !important;
+    --control-primary-text-active: #000 !important;
+    --control-primary-icon-default: #000 !important;
+    --control-primary-icon-hover: #000 !important;
+    --control-primary-icon-active: #000 !important;
+    --control-primary-border-default: transparent !important;
+    --interactive-accent-background-default: rgb(255 255 255 / 8%) !important;
+    --interactive-accent-background-hover: #4d4d4d !important;
+    --interactive-accent-background-active: #3b3b3b !important;
+    --interactive-accent-background-selected: #4d4d4d !important;
+    --input-background-default: rgb(0 0 0 / 55%) !important;
+    --input-border-default: var(--nc-line-strong) !important;
+    --input-border-hover: rgb(255 255 255 / 24%) !important;
+    --input-border-active: rgb(255 255 255 / 32%) !important;
+    --input-placeholder-text-default: var(--nc-faint) !important;
+    --input-text-default: var(--nc-text) !important;
+    --status-online: var(--nc-online) !important;
+    --status-idle: var(--nc-idle) !important;
+    --status-dnd: var(--nc-dnd) !important;
+    --status-positive: var(--nc-online) !important;
+    --icon-status-online: var(--nc-online) !important;
+    --icon-status-idle: var(--nc-idle) !important;
+    --icon-status-dnd: var(--nc-dnd) !important;
+    --icon-status-offline: var(--nc-faint) !important;
+    --text-status-online: var(--nc-online) !important;
+    --text-status-idle: var(--nc-idle) !important;
+    --text-status-dnd: var(--nc-dnd) !important;
+    --text-status-offline: var(--nc-faint) !important;
+    --background-feedback-notification: #a83a3a !important;
+    --scrollbar-auto-thumb: rgb(255 255 255 / 12%) !important;
+    --scrollbar-auto-track: transparent !important;
+    --scrollbar-auto-scrollbar-color-thumb: rgb(255 255 255 / 12%) !important;
+    --scrollbar-auto-scrollbar-color-track: transparent !important;
+    --scrollbar-thin-thumb: rgb(255 255 255 / 10%) !important;
+    --scrollbar-thin-track: transparent !important;
+
+    /* A Nitro colour theme tints everything through these mix amounts and gradients. */
+    --custom-theme-base-color-amount: 0% !important;
+    --custom-theme-text-color-amount: 0% !important;
+    --custom-theme-border-color-amount: 0% !important;
+    --custom-theme-background: linear-gradient(transparent, transparent) !important;
+    --background-gradient-app-frame: linear-gradient(transparent, transparent) !important;
+    --background-gradient-chat: linear-gradient(transparent, transparent) !important;
+    --background-gradient-lowest: linear-gradient(#000, #000) !important;
+    --background-gradient-lower: linear-gradient(#030303, #030303) !important;
+    --background-gradient-low: linear-gradient(#070707, #070707) !important;
+    --background-gradient-high: linear-gradient(#0b0b0b, #0b0b0b) !important;
+    --background-gradient-higher: linear-gradient(#101010, #101010) !important;
+    --background-gradient-highest: linear-gradient(#151515, #151515) !important;
+}
+
+/* ── Frame: lace behind two rounded panels ─────────────────────────────────────────────────── */
+
+#app-mount {
+    background: #000 var(--nessacord-lace) 0 0 / var(--nessacord-lace-size) repeat;
+}
+
+#app-mount [class^="app_"],
+#app-mount [class^="bg_"],
+#app-mount [class*="layers_"],
+#app-mount [class*="baseLayer_"],
+[class*="baseLayer_"] > [class*="container_"],
+[class*="base_"] > [class*="content_"] {
+    background: transparent !important;
+}
+
+/* The title bar stays (it holds the window buttons) but only as a quiet strip above the panels. */
+[class*="base_"] > [class*="bar_"] {
+    background: transparent !important;
+    border: none !important;
+}
+
+[class*="base_"] > [class*="bar_"] > [class*="title_"] {
+    visibility: hidden;
+}
+
+[class*="baseLayer_"] > [class*="container_"] > [class*="base_"] {
+    padding: 0 var(--nc-gap) var(--nc-gap);
+    box-sizing: border-box;
+}
+
+[class*="base_"] > [class*="content_"] > [class*="sidebar_"] {
+    width: auto !important;
+    background: var(--nc-panel) !important;
+    border: 1px solid var(--nc-line);
+    border-radius: var(--nc-radius);
+}
+
+[class*="base_"] > [class*="content_"] > [class*="sidebar_"]::after {
+    display: none;
+}
+
+[class*="sidebar_"] > [class*="sidebarList_"] {
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+
+[class*="sidebar_"] > [class*="sidebarList_"] > nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    background: transparent !important;
+}
+
+[class*="base_"] > [class*="content_"] > [class*="page_"] {
+    margin-left: 6px;
+    background: var(--nc-panel) !important;
+    border: 1px solid var(--nc-line) !important;
+    border-radius: var(--nc-radius);
+    overflow: hidden;
+}
+
+/* ── Server list: tucked into the Nessacord menu ───────────────────────────────────────────── */
+
+[class*="sidebar_"] > nav[class*="guilds_"] {
+    background: transparent !important;
+    border-right: 1px solid var(--nc-line);
+}
+
+/* Hidden only while the menu is there to bring it back. */
+html:not(.nessacord-servers-open) [class*="sidebar_"]:not([data-collapsed="true"]):has(> [class*="sidebarList_"] > .nessacord-brand) > nav[class*="guilds_"] {
+    display: none;
+}
+
+.nessacord-brand {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 12px;
+    height: 68px;
+    padding: 0 18px 0 16px;
+    border-bottom: 1px solid var(--nc-line);
+    color: var(--nc-text);
+    cursor: pointer;
+    user-select: none;
+}
+
+.nessacord-servers-always .nessacord-brand {
+    cursor: default;
+}
+
+.nessacord-brand:focus-visible {
+    outline: 1px solid var(--nc-line-strong);
+    outline-offset: -4px;
+    border-radius: 10px;
+}
+
+.nessacord-brand-mark {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    background: var(--nessacord-mark) center / contain no-repeat;
+}
+
+.nessacord-brand-name {
+    flex: 1 1 auto;
+    font-family: var(--nc-serif);
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1;
+}
+
+.nessacord-brand-chevron {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    color: var(--nc-muted);
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.nessacord-brand-open .nessacord-brand-chevron {
+    transform: rotate(180deg);
+}
+
+.nessacord-brand:hover .nessacord-brand-chevron {
+    color: var(--nc-text);
+}
+
+.nessacord-brand-badge {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    background: var(--background-feedback-notification);
+    color: #fff;
+    font: 600 12px/18px var(--font-primary);
+    text-align: center;
+}
+
+.nessacord-brand-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--nc-text);
+}
+
+/* ── Sidebar contents ──────────────────────────────────────────────────────────────────────── */
+
+/* Server name header (inside a server). */
+[class*="sidebarList_"] header[class*="header_"] {
+    box-shadow: none !important;
+    border-bottom: 1px solid var(--nc-line);
+}
+
+[class*="sidebarList_"] [class*="guildDropdown_"] {
+    font-size: 19px;
+}
+
+/* Section labels: "Direct Messages", channel categories, member groups. */
+[class*="privateChannelsHeaderContainer_"],
+[class*="sidebarList_"] [class*="mainContent_"][role="button"],
+h3[class*="membersGroup_"] {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 12px !important;
+    color: var(--nc-muted);
+}
+
+/* Channel and DM rows. */
+[class*="sidebarList_"] [class*="link_"],
+[class*="privateChannels_"] [class*="interactive_"] {
+    border-radius: 8px;
+}
+
+[class*="sidebarList_"] [class*="name_"] {
+    font-size: 17px;
+    font-weight: 400;
+}
+
+/* User panel: flat, along the bottom of the sidebar. */
+[class*="sidebar_"] > section[class*="panels_"] {
+    --custom-panels-spacing: 0px;
+
+    background: rgb(0 0 0 / 55%) !important;
+    border: none !important;
+    border-top: 1px solid var(--nc-line) !important;
+    border-radius: 0 0 var(--nc-radius) var(--nc-radius);
+}
+
+section[class*="panels_"] [class*="nameTag_"] [class*="title_"] {
+    font-style: italic;
+    font-size: 17px;
+    font-weight: 400;
+}
+
+/* ── Avatars ───────────────────────────────────────────────────────────────────────────────── */
+
+.nessacord-grey-avatars img[class*="avatar_"],
+.nessacord-grey-avatars [class*="avatarStack_"] img,
+.nessacord-grey-avatars [class*="privateChannels_"] img {
+    filter: grayscale(1);
+}
+
+/* ── Login and the other sign-in screens ───────────────────────────────────────────────────── */
+
+[class*="characterBackground_"] {
+    background:
+        radial-gradient(ellipse 70% 80% at 45% 50%, rgb(0 0 0 / 35%) 0%, rgb(0 0 0 / 75%) 100%) !important;
+}
+
+/* Discord's artwork and wordmark make way for the photo and the Nessacord mark. */
+[class*="characterBackground_"] > img[class*="artwork_"] {
+    display: none;
+}
+
+[class*="characterBackground_"] > img[class*="logoWithText_"] {
+    visibility: hidden;
+}
+
+[class*="characterBackground_"]::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 auto;
+    height: 100%;
+    aspect-ratio: 1;
+    background:
+        linear-gradient(90deg, #000 0%, rgb(0 0 0 / 55%) 30%, transparent 60%),
+        linear-gradient(0deg, #000 0%, transparent 30%),
+        linear-gradient(180deg, rgb(0 0 0 / 60%) 0%, transparent 25%),
+        var(--nessacord-photo) center / cover no-repeat;
+    opacity: 0.72;
+    pointer-events: none;
+}
+
+.nessacord-no-photo [class*="characterBackground_"]::before {
+    display: none;
+}
+
+[class*="characterBackground_"]::after {
+    content: "Nessacord";
+    position: absolute;
+    top: 40px;
+    left: 48px;
+    height: 40px;
+    padding-left: 52px;
+    background: var(--nessacord-mark) left center / 40px 40px no-repeat;
+    color: var(--nc-text);
+    font: 400 28px/40px var(--nc-serif);
+    letter-spacing: 0.01em;
+    pointer-events: none;
+}
+
+form[class*="authBox_"] {
+    background: rgb(3 3 3 / 80%) !important;
+    border: 1px solid var(--nc-line);
+    border-radius: 18px !important;
+    box-shadow: 0 40px 120px rgb(0 0 0 / 70%) !important;
+}
+
+form[class*="authBox_"] h1,
+form[class*="authBox_"] h2 {
+    color: var(--nc-text);
+    font-family: var(--nc-serif);
+    font-weight: 400;
+    font-size: 34px;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+}
+
+form[class*="authBox_"] h2 {
+    font-size: 24px;
+}
+
+form[class*="authBox_"] h1 + div,
+form[class*="authBox_"] h2 + div {
+    color: var(--nc-muted);
+    font-style: italic;
+    font-size: 17px;
+}
+
+form[class*="authBox_"] label {
+    color: var(--nc-muted);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+form[class*="authBox_"] [class*="required_"] {
+    color: var(--nc-dnd);
+}
+
+form[class*="authBox_"] input {
+    color: var(--nc-text);
+    font-size: 17px;
+}
+
+form[class*="authBox_"] [class*="control_"] > div,
+form[class*="authBox_"] [class*="control_"] > div > div {
+    border-radius: 10px !important;
+}
+
+form[class*="authBox_"] button[class*="primary_"][class*="hasText_"] {
+    height: 46px;
+    border-radius: 10px;
+    font-size: 17px;
+    letter-spacing: 0.04em;
+}
+
+form[class*="authBox_"] [class*="textButton_"] {
+    color: #cfc9bf;
+}
+
+form[class*="authBox_"] [class*="textButton_"]:hover {
+    color: var(--nc-text);
+    text-decoration: underline;
+}
+
+/* QR code: still black on white so it scans, framed to match. */
+form[class*="authBox_"] [class*="qrCode_"] {
+    border-radius: 14px;
+    box-shadow: 0 0 0 1px var(--nc-line-strong), 0 0 0 7px rgb(0 0 0 / 60%);
+}
+
+form[class*="authBox_"] [class*="qrCodeOverlay_"] img {
+    content: var(--nessacord-mark);
+    padding: 6px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background: #000;
+}
+
+/* ── Chat ──────────────────────────────────────────────────────────────────────────────────── */
+
+/* Header: channel name in large serif, topic in italics. */
+[class*="chat_"] > [class*="subtitleContainer_"] > section,
+main > section[class*="container_"][role="navigation"] {
+    min-height: 68px;
+    background: transparent !important;
+    border-bottom: 1px solid var(--nc-line);
+    box-shadow: none !important;
+}
+
+[class*="subtitleContainer_"] h1[class*="title_"],
+main > section[role="navigation"] h1 {
+    font-size: 25px;
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--nc-text);
+}
+
+[class*="subtitleContainer_"] [class*="topic_"] {
+    font-style: italic;
+    font-size: 15px;
+    color: var(--nc-muted);
+}
+
+/* The photo behind the chat, fading into the dark towards the messages. */
+main[class*="chatContent_"] {
+    background:
+        linear-gradient(90deg, rgb(2 2 2 / 96%) 25%, rgb(2 2 2 / 72%) 55%, rgb(2 2 2 / 18%) 100%),
+        linear-gradient(0deg, rgb(2 2 2 / 90%) 0%, transparent 22%),
+        var(--nessacord-photo) right center / auto 100% no-repeat !important;
+}
+
+.nessacord-no-photo main[class*="chatContent_"] {
+    background: transparent !important;
+}
+
+/* Messages. */
+[class*="messageListItem_"] [class*="cozyMessage_"] [class*="header_"] {
+    line-height: 1.5;
+}
+
+h3[class*="header_"] [class*="username_"] {
+    font-style: italic;
+    font-size: 18px;
+    font-weight: 400;
+}
+
+h3[class*="header_"] [class*="timestamp_"] {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--nc-faint);
+}
+
+[class*="messageContent_"] {
+    font-size: 17px;
+    line-height: 1.45;
+}
+
+/* Messages that ping you: white, not Discord's yellow. Replies-in-progress and jump targets too. */
+[class*="message_"][class*="mentioned_"]::before,
+[class*="message_"][class*="highlighted_"]::before,
+[class*="message_"][class*="replying_"]::before {
+    background: var(--nc-text) !important;
+}
+
+[class*="messageContent_"] .mention,
+[class*="messageContent_"] .mention:hover {
+    background: rgb(255 255 255 / 12%);
+    color: var(--nc-text);
+    text-shadow: none;
+}
+
+[class*="messageContent_"] code,
+[class*="messageContent_"] pre {
+    font-family: var(--font-code);
+}
+
+/* Images and embeds: a quiet rounded frame. */
+[class*="imageWrapper_"],
+[class*="embedFull_"] {
+    border-radius: 12px !important;
+}
+
+[class*="embedFull_"] {
+    background: rgb(255 255 255 / 3%) !important;
+    border: 1px solid var(--nc-line);
+    border-left-width: 3px;
+}
+
+/* Message box: a single rounded bar. */
+[class*="channelTextArea_"] [class*="scrollableContainer_"] {
+    background: rgb(0 0 0 / 55%) !important;
+    border: 1px solid var(--nc-line-strong) !important;
+    border-radius: 12px !important;
+}
+
+[class*="channelTextArea_"] [class*="placeholder_"] {
+    font-style: italic;
+    color: var(--nc-faint);
+}
+
+[class*="channelTextArea_"] [class*="textArea_"] {
+    font-size: 17px;
+}
+
+form[class*="form_"] {
+    padding-inline: 16px;
+}
+
+/* ── Member list ───────────────────────────────────────────────────────────────────────────── */
+
+[class*="content_"] > [class*="container_"] > div[class*="members_"],
+aside[class*="membersWrap_"] {
+    background: transparent !important;
+    border-left: 1px solid var(--nc-line);
+}
+
+div[class*="members_"] [class*="member_"] [class*="name_"] {
+    font-size: 17px;
+    font-weight: 400;
+}
+
+/* ── Names ─────────────────────────────────────────────────────────────────────────────────── */
+
+.nessacord-mono-names [class*="dnsFont_"],
+.nessacord-mono-names [class*="dnsFont_"] *,
+.nessacord-mono-names h3[class*="header_"] [class*="username_"],
+.nessacord-mono-names h3[class*="header_"] [class*="username_"] *,
+.nessacord-mono-names div[class*="members_"] [class*="username_"],
+.nessacord-mono-names div[class*="members_"] [class*="username_"] [class*="name_"],
+.nessacord-mono-names section[class*="panels_"] [class*="nameTag_"] [class*="title_"] * {
+    color: var(--nc-text) !important;
+    background: none !important;
+    -webkit-text-fill-color: currentcolor !important;
+    font-family: var(--nc-serif) !important;
+    text-shadow: none !important;
+    filter: none !important;
+    animation: none !important;
+}
+
+/* ── Odds and ends ─────────────────────────────────────────────────────────────────────────── */
+
+::selection {
+    background: rgb(255 255 255 / 22%);
+}
