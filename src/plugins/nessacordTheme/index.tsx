@@ -11,7 +11,8 @@
 import { definePluginSettings } from "@api/Settings";
 import { classNameFactory, disableStyle, enableStyle } from "@api/Styles";
 import ErrorBoundary from "@components/ErrorBoundary";
-import definePlugin, { OptionType } from "@utils/types";
+import { Devs } from "@utils/constants";
+import definePlugin, { OptionType, StartAt } from "@utils/types";
 import { GuildReadStateStore, useStateFromStores } from "@webpack/common";
 import type { KeyboardEvent } from "react";
 
@@ -28,49 +29,48 @@ const settings = definePluginSettings({
             { label: "In the Nessacord menu (click Nessacord at the top left)", value: "menu", default: true },
             { label: "Always shown", value: "always" }
         ],
-        onChange: applyClasses
+        onChange: applyOptions
     },
     photo: {
         type: OptionType.BOOLEAN,
         description: "Show the photo behind the chat",
         default: true,
-        onChange: applyClasses
+        onChange: applyOptions
     },
     monochromeNames: {
         type: OptionType.BOOLEAN,
         description: "Show names in Nessacord's ivory serif instead of role colours and name styles",
         default: true,
-        onChange: applyClasses
+        onChange: applyOptions
     },
     greyscaleAvatars: {
         type: OptionType.BOOLEAN,
         description: "Show avatars in black and white",
         default: true,
-        onChange: applyClasses
+        onChange: applyOptions
     },
     serversOpen: {
         type: OptionType.BOOLEAN,
         description: "Whether the Nessacord menu is showing your servers",
         default: false,
         hidden: true,
-        onChange: applyClasses
+        onChange: applyOptions
     }
 });
 
-function applyClasses() {
+// The options are words in <html data-nessacord="...">, which theme.css matches with ~=. Not
+// classes: Discord rewrites <html>'s class list while it starts up.
+function applyOptions() {
     const { serverList, serversOpen, photo, monochromeNames, greyscaleAvatars } = settings.store;
-    const root = document.documentElement.classList;
+    const options = {
+        "servers-open": serverList === "always" || serversOpen,
+        "servers-always": serverList === "always",
+        "no-photo": !photo,
+        "mono-names": monochromeNames,
+        "grey-avatars": greyscaleAvatars
+    };
 
-    root.toggle(cl("servers-open"), serverList === "always" || serversOpen);
-    root.toggle(cl("servers-always"), serverList === "always");
-    root.toggle(cl("no-photo"), !photo);
-    root.toggle(cl("mono-names"), monochromeNames);
-    root.toggle(cl("grey-avatars"), greyscaleAvatars);
-}
-
-function clearClasses() {
-    const root = document.documentElement.classList;
-    for (const name of ["servers-open", "servers-always", "no-photo", "mono-names", "grey-avatars"]) root.remove(cl(name));
+    document.documentElement.dataset.nessacord = Object.entries(options).filter(([, on]) => on).map(([name]) => name).join(" ");
 }
 
 function toggleServers() {
@@ -118,8 +118,11 @@ const WrappedBrandHeader = ErrorBoundary.wrap(BrandHeader, { noop: true });
 export default definePlugin({
     name: "NessacordTheme",
     description: "Nessacord's look: black and lace, serif type, a photo behind the chat and your servers tucked into the Nessacord menu.",
-    authors: [{ name: "deargod", id: 0n }, { name: "bella", id: 0n }],
+    authors: [Devs.deargod, Devs.bella],
     enabledByDefault: true,
+    // Plugins normally start once you're logged in; the theme has to be there for the login screen
+    // too. Not at Init: <html> doesn't exist yet then, and the options are an attribute on it.
+    startAt: StartAt.DOMContentLoaded,
     settings,
 
     patches: [
@@ -155,12 +158,12 @@ export default definePlugin({
     start() {
         enableStyle(assetsStyle);
         enableStyle(themeStyle);
-        applyClasses();
+        applyOptions();
     },
 
     stop() {
         disableStyle(themeStyle);
         disableStyle(assetsStyle);
-        clearClasses();
+        delete document.documentElement.dataset.nessacord;
     }
 });

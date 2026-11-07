@@ -4,19 +4,19 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-// Nessacord, main-process side: window/taskbar icon, window title, tray tooltip and splash logo,
-// plus (opt-in) the Start menu shortcuts. Based on deargod's GodCord.
+// Nessacord, main-process side: window/taskbar icon, window title, tray icon and tooltip, splash
+// logo and shortcuts. Based on deargod's GodCord.
 //
 // Nothing is exported on purpose: every export of a native.ts is registered as an IPC handler.
 // Discord's userData path is never touched (no app.setName), so logins and settings stay put.
 
 import { RendererSettings } from "@main/settings";
 import { DATA_DIR } from "@main/utils/constants";
-import { app, BrowserWindow, NativeImage, nativeImage, shell, Tray } from "electron";
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, watch, writeFileSync } from "fs";
-import { basename, dirname, join } from "path";
+import { app, BrowserWindow, NativeImage, nativeImage, shell, ShortcutDetails, Tray } from "electron";
+import fs, { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, watch, writeFileSync } from "fs";
+import { basename, dirname, join, sep } from "path";
 
-import { ICON_ICO_BASE64, MARK_256_DATA_URI } from "./iconData";
+import { ICON_ICO_BASE64, MARK_256_DATA_URI, TRAY_ICONS } from "./iconData";
 
 const APP_NAME = "Nessacord";
 const ICO_PATH = join(DATA_DIR, "nessacord.ico");
@@ -52,30 +52,60 @@ function getIcon() {
     return icon;
 }
 
-// ── Start menu shortcuts (opt-in) ─────────────────────────────────────────────────────────────
-// Start menu, search and notification headers use the shortcut that carries Discord's
-// AppUserModelID. Discord's updater re-creates its own shortcut with the stock icon a few seconds
-// into every launch, so when enabled the shortcuts are re-branded at startup and whenever one
-// re-appears: re-iconed, renamed to Nessacord.lnk, and a re-created duplicate is removed.
-const PROGRAMS_DIR = join(app.getPath("appData"), "Microsoft", "Windows", "Start Menu", "Programs");
-const SHORTCUT_DIRS = [PROGRAMS_DIR, join(PROGRAMS_DIR, "Discord Inc")];
-
 // Discord sets com.squirrel.<Name>.<Name> as its AppUserModelID (e.g. com.squirrel.Discord.Discord).
 const EXE_NAME = basename(process.execPath, ".exe");
 const APP_ID = `com.squirrel.${EXE_NAME}.${EXE_NAME}`;
 
-function isOurShortcut(path: string) {
+// Nessacord's windows carry their own AppUserModelID (see Taskbar identity below).
+const WINDOW_APP_ID = `${APP_NAME}.${EXE_NAME}`;
+
+// ── Shortcuts ─────────────────────────────────────────────────────────────────────────────────
+// Start menu, search and notification headers use the shortcut that carries Discord's
+// AppUserModelID, and a taskbar pin draws its own shortcut's icon. Discord writes its stock
+// shortcuts back after updates, so they are re-branded at startup and whenever one re-appears:
+// - Start menu and desktop: Nessacord icon and name (renamed to Nessacord.lnk; a re-created
+//   duplicate is removed). They keep Discord's AppUserModelID, which notifications need.
+// - Taskbar pins: Nessacord icon, and Nessacord's window ID so the running window shares the pin's
+//   button. Pins are never renamed (Windows tracks them by file).
+// Only shortcuts that start this install are touched (another Discord install shares the same
+// AppUserModelID). What each one looked like before is kept in shortcuts.json, so turning the
+// option off (or uninstalling) puts them back.
+const INSTALL_ROOT = dirname(dirname(process.execPath)).toLowerCase() + sep;
+const START_MENU_DIR = join(app.getPath("appData"), "Microsoft", "Windows", "Start Menu", "Programs");
+const SHORTCUT_DIRS = [
+    { dir: START_MENU_DIR, pinned: false },
+    { dir: join(START_MENU_DIR, "Discord Inc"), pinned: false },
+    { dir: app.getPath("desktop"), pinned: false },
+    { dir: join(app.getPath("appData"), "Microsoft", "Internet Explorer", "Quick Launch", "User Pinned", "TaskBar"), pinned: true }
+];
+const SHORTCUT_RECORD = join(DATA_DIR, "shortcuts.json");
+
+type OriginalShortcut = Required<Pick<ShortcutDetails, "icon" | "iconIndex" | "description" | "appUserModelId">> & { path: string; };
+
+function readRecord(): Record<string, OriginalShortcut> {
     try {
-        return shell.readShortcutLink(path).appUserModelId === APP_ID;
+        return JSON.parse(readFileSync(SHORTCUT_RECORD, "utf8"));
     } catch {
-        return false;
+        return {};
     }
 }
 
-function brandStartMenuShortcuts() {
-    if (process.platform !== "win32" || !hasIconFile || !isEnabled() || !pluginSettings()?.brandShortcuts) return;
+function readOurShortcut(path: string) {
+    try {
+        const link = shell.readShortcutLink(path);
+        const ours = (link.appUserModelId === APP_ID || link.appUserModelId === WINDOW_APP_ID)
+            && link.target.toLowerCase().startsWith(INSTALL_ROOT);
+        return ours ? link : undefined;
+    } catch {
+        return undefined;
+    }
+}
 
-    for (const dir of SHORTCUT_DIRS) {
+function brandShortcuts() {
+    const record = readRecord();
+    const recorded = Object.keys(record).length;
+
+    for (const { dir, pinned } of SHORTCUT_DIRS) {
         let names: string[];
         try {
             names = readdirSync(dir).filter(n => /\.lnk$/i.test(n) && /discord|godcord|nessacord/i.test(n));
@@ -83,49 +113,91 @@ function brandStartMenuShortcuts() {
             continue;
         }
 
-        const brandedPath = join(dir, `${APP_NAME}.lnk`);
         for (const name of names) {
             const path = join(dir, name);
-            if (!isOurShortcut(path)) continue;
+            const link = readOurShortcut(path);
+            if (!link) continue;
 
-            const link = shell.readShortcutLink(path);
-            if (link.icon !== ICO_PATH || link.description !== APP_NAME)
-                shell.writeShortcutLink(path, "update", { target: link.target, icon: ICO_PATH, iconIndex: 0, description: APP_NAME });
+            const brandedPath = pinned ? path : join(dir, `${APP_NAME}.lnk`);
+            const isDuplicate = path.toLowerCase() !== brandedPath.toLowerCase() && existsSync(brandedPath);
+            if (isDuplicate) {
+                if (readOurShortcut(brandedPath)) rmSync(path);
+                continue;
+            }
 
-            if (path.toLowerCase() === brandedPath.toLowerCase()) continue;
+            if (link.icon !== ICO_PATH) {
+                record[brandedPath.toLowerCase()] ??= {
+                    path,
+                    icon: link.icon ?? "",
+                    iconIndex: link.iconIndex ?? 0,
+                    description: link.description ?? "",
+                    appUserModelId: link.appUserModelId ?? ""
+                };
+            }
 
-            if (!existsSync(brandedPath)) renameSync(path, brandedPath);
-            else if (isOurShortcut(brandedPath)) rmSync(path);
+            const appUserModelId = pinned ? WINDOW_APP_ID : link.appUserModelId;
+            if (link.icon !== ICO_PATH || link.description !== APP_NAME || link.appUserModelId !== appUserModelId)
+                shell.writeShortcutLink(path, "update", { target: link.target, icon: ICO_PATH, iconIndex: 0, description: APP_NAME, appUserModelId });
+
+            if (path !== brandedPath) renameSync(path, brandedPath);
         }
     }
+
+    if (Object.keys(record).length !== recorded) writeFileSync(SHORTCUT_RECORD, JSON.stringify(record, null, 4));
 }
 
-function tryBrandStartMenuShortcuts() {
+function restoreShortcuts() {
+    const record = readRecord();
+
+    for (const [brandedPath, original] of Object.entries(record)) {
+        const link = readOurShortcut(brandedPath);
+        if (!link) continue;
+
+        const { path, ...details } = original;
+        shell.writeShortcutLink(brandedPath, "update", { target: link.target, ...details });
+
+        if (path.toLowerCase() === brandedPath) continue;
+        if (existsSync(path)) rmSync(brandedPath);
+        else renameSync(brandedPath, path);
+    }
+
+    rmSync(SHORTCUT_RECORD, { force: true });
+}
+
+function tryBrandShortcuts() {
     try {
-        brandStartMenuShortcuts();
+        brandShortcuts();
     } catch (err) {
-        console.error("[Nessacord] Could not re-brand the Start menu shortcuts", err);
+        console.error("[Nessacord] Could not brand the shortcuts", err);
     }
 }
 
 if (process.platform === "win32") {
-    // At startup, before Discord's first window exists, so its taskbar button resolves to the branded shortcut.
-    tryBrandStartMenuShortcuts();
+    if (hasIconFile && isEnabled() && pluginSettings()?.brandShortcuts !== false) {
+        // At startup, before Discord's first window exists, so its taskbar button resolves to the branded shortcut.
+        tryBrandShortcuts();
 
-    // Then whenever Discord's updater writes its own shortcut back. Debounced so the updater has
-    // finished writing the file before it is read; the pass is idempotent.
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const onChange = (_event: string, file: string | Buffer | null) => {
-        if (file && !/discord.*\.lnk$/i.test(String(file))) return;
-        clearTimeout(timer);
-        timer = setTimeout(tryBrandStartMenuShortcuts, 1000);
-    };
+        // Then whenever Discord writes its own shortcut back. Debounced so the file is complete
+        // before it is read; the pass is idempotent.
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const onChange = (_event: string, file: string | Buffer | null) => {
+            if (file && !/discord.*\.lnk$/i.test(String(file))) return;
+            clearTimeout(timer);
+            timer = setTimeout(tryBrandShortcuts, 1000);
+        };
 
-    for (const dir of SHORTCUT_DIRS) {
+        for (const { dir } of SHORTCUT_DIRS) {
+            try {
+                watch(dir, { persistent: false }, onChange).on("error", () => { });
+            } catch {
+                // Folder missing: nothing to keep branded there.
+            }
+        }
+    } else if (existsSync(SHORTCUT_RECORD)) {
         try {
-            watch(dir, { persistent: false }, onChange).on("error", () => { });
-        } catch {
-            // Folder missing: nothing to keep branded there.
+            restoreShortcuts();
+        } catch (err) {
+            console.error("[Nessacord] Could not restore the shortcuts", err);
         }
     }
 }
@@ -167,10 +239,8 @@ try {
 // ── Taskbar identity ──────────────────────────────────────────────────────────────────────────
 // Windows looks up the shortcut that carries a window's AppUserModelID and draws that shortcut's
 // icon. Discord's updater writes its stock-icon shortcut back on every launch, so Nessacord's
-// windows get their own ID that no shortcut carries, which makes Windows use the window icon, plus
-// a relaunch icon, name and command so pinning keeps the branding.
-const WINDOW_APP_ID = `${APP_NAME}.${EXE_NAME}`;
-
+// windows get their own ID (WINDOW_APP_ID) that only branded taskbar pins carry, which makes
+// Windows use the window icon, plus a relaunch icon, name and command so pinning keeps the branding.
 function getRelaunchCommand() {
     // <install root>\Discord.exe --processStart Discord.exe, as Discord's own shortcuts do.
     const root = dirname(dirname(process.execPath));
@@ -254,7 +324,24 @@ app.on("browser-window-created", (_, win) => brandWindow(win));
 app.whenReady().then(() => BrowserWindow.getAllWindows().forEach(brandWindow));
 
 // ── Tray ──────────────────────────────────────────────────────────────────────────────────────
-// Tooltip only. The tray icon is left alone so Discord's unread, mute and voice status icons keep working.
+// Discord's core reads its tray images once, at startup, from
+// app/images/systemtray/win32/<name>[@<scale>x].png, and picks the scale itself. The Nessacord
+// mark is handed over in place of the plain and unread icons. The voice icons (connected,
+// speaking, muted, deafened) are plain status glyphs and stay as they are.
+const TRAY_IMAGE = /[\\/]systemtray[\\/]win32[\\/]([\w@.-]+\.png)$/;
+
+if (process.platform === "win32") {
+    const originalReadFileSync = fs.readFileSync;
+    fs.readFileSync = function (this: typeof fs, path: unknown, options?: unknown) {
+        if (options == null && typeof path === "string" && path.endsWith(".png")) {
+            const name = TRAY_IMAGE.exec(path)?.[1];
+            const png = name && TRAY_ICONS[name];
+            if (png && isEnabled()) return Buffer.from(png, "base64");
+        }
+        return originalReadFileSync.apply(this, arguments as any);
+    } as typeof fs.readFileSync;
+}
+
 try {
     const originalSetToolTip = Tray.prototype.setToolTip;
     Tray.prototype.setToolTip = function (this: Tray, toolTip: string) {
