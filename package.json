@@ -3,13 +3,13 @@
     "private": "true",
     "version": "1.15.16",
     "description": "A Discord client mod in black and lace, based on Vencord",
-    "homepage": "https://github.com/SerenityDiscko/nessacord#readme",
+    "homepage": "https://github.com/deargodx/nessacord#readme",
     "bugs": {
-        "url": "https://github.com/SerenityDiscko/nessacord/issues"
+        "url": "https://github.com/deargodx/nessacord/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/SerenityDiscko/nessacord.git"
+        "url": "git+https://github.com/deargodx/nessacord.git"
     },
     "license": "GPL-3.0-or-later",
     "author": "deargod",

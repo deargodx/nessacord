@@ -13,7 +13,7 @@ namespace Nessacord.Installer
 {
     static class Release
     {
-        public const string Repo = "SerenityDiscko/nessacord";
+        public const string Repo = "deargodx/nessacord";
         const string Checksums = "SHA256SUMS";
 
         // The files Nessacord's updater replaces too (src/main/updater/common.ts).

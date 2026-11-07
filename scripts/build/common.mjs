@@ -50,7 +50,7 @@ export const IS_UPDATER_DISABLED = process.argv.includes("--disable-updater");
 export const gitHash = process.env.VENCORD_HASH || execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
 
 /** GitHub repo that Nessacord's updater checks, unless VENCORD_REMOTE or a non-upstream origin says otherwise. */
-export const NESSACORD_REPO = "SerenityDiscko/nessacord";
+export const NESSACORD_REPO = "deargodx/nessacord";
 
 export const banner = {
     js: `
