@@ -579,7 +579,7 @@ h3[class*="header_"] [class*="timestamp_"] {
 
 /* Message box: a single rounded bar. */
 [class*="channelTextArea_"] [class*="scrollableContainer_"] {
-    background: rgb(0 0 0 / 55%) !important;
+    background: var(--input-background-default) !important;
     border: 1px solid var(--nc-line-strong) !important;
     border-radius: 12px !important;
 }
@@ -663,6 +663,22 @@ div[class*="members_"] [class*="member_"] [class*="name_"] {
     --input-background-default: rgb(255 255 255 / 55%) !important;
     --input-border-hover: rgb(0 0 0 / 24%) !important;
     --input-border-active: rgb(0 0 0 / 32%) !important;
+    --background-base-lowest: #fff !important;
+    --background-base-lower: #fcfcfc !important;
+    --background-base-low: #f8f8f8 !important;
+    --background-surface-high: #fff !important;
+    --background-surface-higher: #fff !important;
+    --background-surface-highest: #fff !important;
+    --background-accent: #ebebeb !important;
+    --background-secondary-alt: #f8f8f8 !important;
+    --bg-surface-raised: #fff !important;
+    --card-background-default: #fcfcfc !important;
+}
+
+/* Name styles drawn with an outline (neon, toon, pop) keep Nessacord's ivory inside it, as they do
+   everywhere else; ink inside a coloured outline reads as a smudge. */
+[data-nessacord~="mono-names"] .custom-user-profile-theme.theme-light [class*="dnsFont_"] :is([class*="neon_"], [class*="toon_"], [class*="pop_"]) {
+    color: #f1f0ee !important;
 }
 
 /* ── Odds and ends ─────────────────────────────────────────────────────────────────────────── */
