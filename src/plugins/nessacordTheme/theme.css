@@ -628,6 +628,43 @@ div[class*="members_"] [class*="member_"] [class*="name_"] {
     animation: none !important;
 }
 
+/* ── Profiles ──────────────────────────────────────────────────────────────────────────────── */
+
+/* A profile in light Nitro colours keeps them, and Discord draws it under a light wash made for dark
+   text. Nessacord's light text would vanish there, so on light profiles its palette turns to ink. The
+   text variables above are built from --nc-*, so redefining those here darkens them too. */
+.custom-user-profile-theme.theme-light {
+    --nc-text: #0b0b0b;
+    --nc-text-soft: #1f1f1f;
+    --nc-muted: #4f4f4f;
+    --nc-faint: #6e6e6e;
+    --nc-line: rgb(0 0 0 / 12%);
+    --nc-line-strong: rgb(0 0 0 / 20%);
+    --text-subtle: #5a5a5a !important;
+    --text-link: #1f1f1f !important;
+    --interactive-text-hover: #000 !important;
+    --interactive-muted: #9a9a9a !important;
+    --icon-default: #333 !important;
+    --icon-muted: #7a7a7a !important;
+    --icon-subtle: #4f4f4f !important;
+    --icon-link: #1f1f1f !important;
+    --mention-background: rgb(0 0 0 / 10%) !important;
+    --background-mod-subtle: rgb(0 0 0 / 5%) !important;
+    --background-mod-muted: rgb(0 0 0 / 4%) !important;
+    --background-mod-normal: rgb(0 0 0 / 8%) !important;
+    --background-mod-strong: rgb(0 0 0 / 12%) !important;
+    --interactive-background-hover: rgb(0 0 0 / 5%) !important;
+    --interactive-background-active: rgb(0 0 0 / 9%) !important;
+    --interactive-background-selected: rgb(0 0 0 / 8%) !important;
+    --border-subtle: rgb(0 0 0 / 8%) !important;
+    --border-muted: rgb(0 0 0 / 10%) !important;
+    --border-normal: rgb(0 0 0 / 14%) !important;
+    --border-strong: rgb(0 0 0 / 22%) !important;
+    --input-background-default: rgb(255 255 255 / 55%) !important;
+    --input-border-hover: rgb(0 0 0 / 24%) !important;
+    --input-border-active: rgb(0 0 0 / 32%) !important;
+}
+
 /* ── Odds and ends ─────────────────────────────────────────────────────────────────────────── */
 
 ::selection {
