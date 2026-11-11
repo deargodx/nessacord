@@ -45,7 +45,7 @@ const settings = definePluginSettings({
     },
     greyscaleAvatars: {
         type: OptionType.BOOLEAN,
-        description: "Show avatars in black and white",
+        description: "Show avatars in black and white (in colour when you point at one or open a profile)",
         default: true,
         onChange: applyOptions
     },

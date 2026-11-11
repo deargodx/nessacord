@@ -357,6 +357,14 @@ section[class*="panels_"] [class*="nameTag_"] [class*="title_"] {
 [data-nessacord~="grey-avatars"] [class*="avatarStack_"] img,
 [data-nessacord~="grey-avatars"] [class*="privateChannels_"] img {
     filter: grayscale(1);
+    transition: filter 0.3s ease;
+}
+
+/* Pictures come back in colour when you point at one, and in profiles. */
+[data-nessacord~="grey-avatars"] img[class*="avatar_"]:hover,
+[data-nessacord~="grey-avatars"] [class*="wrapper_"]:hover > svg[class*="mask_"] img[class*="avatar_"],
+[data-nessacord~="grey-avatars"] :is(.user-profile-popout, .user-profile-sidebar, .user-profile-modal, .user-profile-modal-v2) :is(img[class*="avatar_"], [class*="avatarStack_"] img) {
+    filter: none;
 }
 
 /* ── Login and the other sign-in screens ───────────────────────────────────────────────────── */
